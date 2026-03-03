@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Sender</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem 3rem; color: #111827; background: #f3f4f6; }
+    h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+    h2.step-title { font-size: 1rem; margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: .04em; color: #6b7280; }
+    p.lead { margin-top: 0; margin-bottom: 1.5rem; color: #4b5563; font-size: 0.95rem; }
+    button { padding: 0.55rem 1.1rem; font-size: 0.95rem; cursor: pointer; border-radius: 999px; border: 1px solid #d1d5db; background: #f9fafb; }
+    button:hover { background: #e5e7eb; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.primary { background: #2563eb; color: white; border-color: #2563eb; }
+    button.primary:hover { background: #1d4ed8; }
+    .card { background: #ffffff; padding: 1rem 1.25rem; border-radius: 12px; margin: 1rem 0; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); }
+    input, select { padding: 0.45rem 0.6rem; margin: 0.25rem 0; width: 100%; max-width: 360px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 0.95rem; }
+    label { display: block; margin-top: 0.65rem; font-size: 0.92rem; color: #374151; }
+    .hint { font-size: 0.8rem; color: #6b7280; margin-top: 0.15rem; }
+    .error { color: #b91c1c; font-size: 0.86rem; margin-top: 0.4rem; }
+    .success { color: #166534; font-size: 0.86rem; margin-top: 0.4rem; }
+    #recipients-preview { max-height: 180px; overflow-y: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.8rem; background: #f9fafb; border-radius: 8px; padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; }
+    .preview-meta { font-size: 0.9rem; color: #374151; margin-bottom: 0.5rem; }
+    .summary-row { display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: 0.9rem; color: #374151; }
+    .summary-label { font-weight: 600; color: #111827; }
+    .section-actions { margin-top: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; background: #e5e7eb; color: #374151; }
+  </style>
+</head>
+<body>
+  <h1>Bulk Sender</h1>
+  <p class="lead">Send the same amount of CELO or an ERC20 token to many wallets in a few simple steps.</p>
+
+  <div id="connect-section">
+    <button id="btn-connect">Connect Wallet</button>
+  </div>
+
+  <div id="app" style="display: none;">
+    <p>Connected: <strong id="wallet-address"></strong></p>
+
+    <div class="card">
+      <h2 class="step-title">Step 1 · Select asset & amount</h2>
+      <label>
+        Asset to send
+        <select id="mode">
+          <option value="native" selected>Send CELO (native)</option>
+          <option value="token">Send ERC20 token</option>
+        </select>
+      </label>
+
+      <div id="token-field" style="display: none;">
+        <label>Token address <input type="text" id="token-address" placeholder="0x..." /></label>
+        <div class="hint">For example cUSD, COPm, or any ERC20 token address on Celo.</div>
+      </div>
+
+      <label>Amount per recipient <input type="text" id="amount" placeholder="0.01" /></label>
+      <div class="hint">Same amount will be sent to every address. Uses 18 decimals (e.g. 0.5 = 0.5 tokens).</div>
+
+      <h2 class="step-title" style="margin-top: 1.25rem;">Step 2 · Upload recipients (CSV)</h2>
+      <label>CSV file
+        <input type="file" id="csv-file" accept=".csv,.txt" />
+      </label>
+      <div class="hint">
+        One address per line, or comma-separated. Invalid or duplicate addresses are ignored.
+      </div>
+    </div>
+
+    <div id="preview" class="card" style="display: none;">
+      <h2 class="step-title">Step 3 · Review summary</h2>
+      <div class="summary-row">
+        <div><span class="summary-label">Mode:</span> <span id="summary-mode">-</span></div>
+        <div><span class="summary-label">Recipients:</span> <span id="summary-count">0</span></div>
+        <div><span class="summary-label">Total to send:</span> <span id="summary-total">-</span></div>
+      </div>
+      <p class="preview-meta"><span class="badge">Preview</span>&nbsp;First recipients from your CSV:</p>
+      <div id="recipients-preview"></div>
+    </div>
+
+    <div class="section-actions">
+      <button id="btn-send" class="primary" disabled>Send now</button>
+      <span class="hint">Step 4 · Confirm the transaction in your wallet.</span>
+    </div>
+    <p class="error" id="send-error"></p>
+    <p class="success" id="send-success"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
