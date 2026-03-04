@@ -3,6 +3,14 @@ Bulk Sender for Celo
 
 This repository contains a simple bulk sender smart contract and a static frontend to send CELO or ERC‑20 tokens to many recipients in a single transaction.
 
+### Deployed contract (Celo mainnet)
+
+| Contract  | Address |
+|-----------|---------|
+| BulkSender | `0xAeB90eb53700e83F91046Bd71a7553CC564747a2` |
+
+The frontend is pre-configured to use this contract. Serve the frontend, connect your wallet, and start sending.
+
 The project is split into two main parts:
 
 - `contracts`: Foundry-based Solidity project for the bulk sender smart contract.
@@ -51,6 +59,8 @@ You can export this in your shell before running `forge` commands, for example:
 export CELO_RPC_URL="https://alfajores-forno.celo-testnet.org"
 ```
 
+Alternatively, you can copy `contracts/.env.example` to `contracts/.env` and edit the value there; Foundry will automatically load environment variables from that file when running inside the `contracts` directory.
+
 No additional configuration changes are required in `foundry.toml`; it is already wired to read this environment variable.
 
 
@@ -71,22 +81,21 @@ It uses a global configuration object defined in `frontend/config.js` and expect
 All runtime configuration for the frontend lives in `frontend/config.js`:
 
 ```javascript
-// Edit these after deploying the BulkSender contract
+// Pre-configured for Celo mainnet with the deployed BulkSender contract
 window.BULK_SENDER_CONFIG = {
-  bulkSenderAddress: "0x0000000000000000000000000000000000000000",
-  rpcUrl: "https://alfajores-forno.celo-testnet.org",
-  chainId: 44787, // Celo Alfajores
+  bulkSenderAddress: "0xAeB90eb53700e83F91046Bd71a7553CC564747a2",
+  rpcUrl: "https://forno.celo.org",
+  chainId: 42220, // Celo mainnet
 };
 ```
 
-You must update the following fields before using the app against a real deployment:
+The app comes pre-configured for the mainnet deployment above. To use a different network or your own deployment, edit:
 
-- **`bulkSenderAddress`**: The address of your deployed BulkSender contract.
-  - Replace the all‑zero placeholder with the actual contract address.
-- **`rpcUrl`**: RPC URL that matches the network where the contract is deployed.
-  - Example for Alfajores: `https://alfajores-forno.celo-testnet.org`
-  - For mainnet, use a mainnet RPC endpoint instead.
-- **`chainId`**: Numeric chain ID corresponding to the target network.
+- **`bulkSenderAddress`**: The address of the BulkSender contract.
+- **`rpcUrl`**: RPC URL for the target network.
+  - Alfajores: `https://alfajores-forno.celo-testnet.org`
+  - Mainnet: `https://forno.celo.org`
+- **`chainId`**: Numeric chain ID.
   - Alfajores testnet: `44787`
   - Celo mainnet: `42220`
 

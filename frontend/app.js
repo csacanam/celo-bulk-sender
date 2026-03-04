@@ -8,6 +8,7 @@ const BULK_SENDER_ABI = [
 let signer;
 let bulkSenderContract;
 let recipients = [];
+let hasInvalidRecipients = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -48,7 +49,7 @@ function updateSummary() {
 }
 
 function updateSendButton() {
-  $("btn-send").disabled = recipients.length === 0 || !isAmountValid();
+  $("btn-send").disabled = recipients.length === 0 || !isAmountValid() || hasInvalidRecipients;
 }
 
 async function connect() {
@@ -83,14 +84,19 @@ async function connect() {
 function parseAddresses(text) {
   const lines = text.split(/[\n,]/).map((s) => s.trim().toLowerCase()).filter(Boolean);
   const seen = new Set();
-  const result = [];
+  const valid = [];
+  const invalid = [];
   for (const a of lines) {
-    if (ethers.isAddress(a) && !seen.has(a)) {
-      seen.add(a);
-      result.push(a);
+    if (ethers.isAddress(a)) {
+      if (!seen.has(a)) {
+        seen.add(a);
+        valid.push(a);
+      }
+    } else {
+      invalid.push(a);
     }
   }
-  return result;
+  return { valid, invalid };
 }
 
 function onFileChange(e) {
@@ -98,13 +104,20 @@ function onFileChange(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
-    recipients = parseAddresses(ev.target.result);
+    const { valid, invalid } = parseAddresses(ev.target.result);
+    recipients = valid;
+    hasInvalidRecipients = invalid.length > 0;
     const previewMax = 30;
     const preview = recipients.slice(0, previewMax);
     $("recipients-preview").textContent = preview.length
       ? preview.join("\n") + (recipients.length > previewMax ? `\n… and ${recipients.length - previewMax} more` : "")
       : "No valid addresses";
     $("preview").style.display = "block";
+    if (hasInvalidRecipients) {
+      $("send-error").textContent = `CSV contains ${invalid.length} invalid address(es). Please fix them and re-upload.`;
+    } else {
+      $("send-error").textContent = "";
+    }
     updateSummary();
     updateSendButton();
   };
@@ -133,6 +146,11 @@ $("btn-send").addEventListener("click", async () => {
   const amountStr = $("amount").value.trim();
   if (!amountStr || isNaN(parseFloat(amountStr))) {
     $("send-error").textContent = "Enter a valid amount";
+    return;
+  }
+
+  if (hasInvalidRecipients) {
+    $("send-error").textContent = "Fix invalid addresses in the CSV before sending.";
     return;
   }
 
