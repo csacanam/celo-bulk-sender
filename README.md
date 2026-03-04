@@ -3,13 +3,15 @@ Bulk Sender for Celo
 
 This repository contains a simple bulk sender smart contract and a static frontend to send CELO or ERC‑20 tokens to many recipients in a single transaction.
 
-### Deployed contract (Celo mainnet)
+### Live app & deployed contract (Celo mainnet)
+
+**Try it:** [https://celo-bulk-sender.vercel.app/](https://celo-bulk-sender.vercel.app/)
 
 | Contract  | Address |
 |-----------|---------|
 | BulkSender | `0xAeB90eb53700e83F91046Bd71a7553CC564747a2` |
 
-The frontend is pre-configured to use this contract. Serve the frontend, connect your wallet, and start sending.
+The frontend is pre-configured to use this contract. Connect your wallet and start sending.
 
 The project is split into two main parts:
 
