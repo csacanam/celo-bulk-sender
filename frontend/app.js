@@ -1,8 +1,14 @@
 const CONFIG = window.BULK_SENDER_CONFIG;
+const MENTO_TOKENS = window.MENTO_TOKENS || [];
 
 const BULK_SENDER_ABI = [
   "function bulkSendNative(address[] recipients, uint256 amountPerRecipient) payable",
   "function bulkSendToken(address token, address[] recipients, uint256 amountPerRecipient)",
+];
+
+const ERC20_ABI = [
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
 ];
 
 let signer;
@@ -29,10 +35,21 @@ function isAmountValid() {
   }
 }
 
+function getSelectedToken() {
+  const sel = $("token-select");
+  if (!sel || !sel.value) return null;
+  return MENTO_TOKENS.find((t) => t.address.toLowerCase() === sel.value.toLowerCase()) || null;
+}
+
 function updateSummary() {
   const isNative = getMode() === "native";
   const amountStr = $("amount").value.trim();
-  $("summary-mode").textContent = isNative ? "CELO (native)" : "ERC20 token";
+  const token = getSelectedToken();
+  $("summary-mode").textContent = isNative
+    ? "CELO (native)"
+    : token
+      ? `${token.symbol} (${token.name})`
+      : "ERC20 token";
   $("summary-count").textContent = recipients.length.toString();
 
   let totalText = "-";
@@ -40,7 +57,8 @@ function updateSummary() {
     try {
       const amount = ethers.parseUnits(amountStr, 18);
       const total = amount * BigInt(recipients.length);
-      totalText = `${ethers.formatUnits(total, 18)} ${isNative ? "CELO" : "tokens"}`;
+      const unit = isNative ? "CELO" : (token && token.symbol) || "tokens";
+      totalText = `${ethers.formatUnits(total, 18)} ${unit}`;
     } catch {
       totalText = "-";
     }
@@ -124,6 +142,18 @@ function onFileChange(e) {
   reader.readAsText(file);
 }
 
+// Populate Mento token dropdown
+(function () {
+  const sel = document.getElementById("token-select");
+  if (!sel || !MENTO_TOKENS.length) return;
+  MENTO_TOKENS.forEach((t) => {
+    const opt = document.createElement("option");
+    opt.value = t.address;
+    opt.textContent = `${t.symbol} – ${t.name}`;
+    sel.appendChild(opt);
+  });
+})();
+
 $("mode").addEventListener("change", (e) => {
   $("token-field").style.display = e.target.value === "token" ? "block" : "none";
   updateSummary();
@@ -135,6 +165,10 @@ $("csv-file").addEventListener("change", onFileChange);
 $("amount").addEventListener("input", () => {
   updateSummary();
   updateSendButton();
+});
+
+$("token-select").addEventListener("change", () => {
+  updateSummary();
 });
 
 $("btn-connect").addEventListener("click", connect);
@@ -169,14 +203,23 @@ $("btn-send").addEventListener("click", async () => {
       await tx.wait();
       $("send-success").textContent = `Sent ${amountStr} CELO to ${recipients.length} addresses. Tx: ${tx.hash}`;
     } else {
-      const tokenAddr = $("token-address").value.trim();
-      if (!ethers.isAddress(tokenAddr)) {
-        $("send-error").textContent = "Enter a valid token address";
+      const token = getSelectedToken();
+      if (!token) {
+        $("send-error").textContent = "Select a token";
         return;
       }
-      const tx = await bulkSenderContract.bulkSendToken(tokenAddr, recipients, amount);
+      const totalRequired = amount * BigInt(recipients.length);
+      const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
+      const currentAllowance = await tokenContract.allowance(await signer.getAddress(), CONFIG.bulkSenderAddress);
+      if (currentAllowance < totalRequired) {
+        $("send-success").textContent = "Approving token spend… confirm in your wallet.";
+        const approveTx = await tokenContract.approve(CONFIG.bulkSenderAddress, totalRequired);
+        await approveTx.wait();
+        $("send-success").textContent = "Approved. Sending tokens…";
+      }
+      const tx = await bulkSenderContract.bulkSendToken(token.address, recipients, amount);
       await tx.wait();
-      $("send-success").textContent = `Sent ${amountStr} tokens to ${recipients.length} addresses. Tx: ${tx.hash}`;
+      $("send-success").textContent = `Sent ${amountStr} ${token.symbol} to ${recipients.length} addresses. Tx: ${tx.hash}`;
     }
   } catch (e) {
     $("send-error").textContent = e.reason || e.message || "Transaction failed";

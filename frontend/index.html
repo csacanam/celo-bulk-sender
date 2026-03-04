@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bulk Sender</title>
+  <title>Celo Bulk Sender</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem 3rem; color: #111827; background: #f3f4f6; }
@@ -27,11 +27,14 @@
     .summary-label { font-weight: 600; color: #111827; }
     .section-actions { margin-top: 1rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
     .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; background: #e5e7eb; color: #374151; }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-size: 0.85rem; color: #6b7280; }
+    footer a { color: #2563eb; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h1>Bulk Sender</h1>
-  <p class="lead">Send the same amount of CELO or an ERC20 token to many wallets in a few simple steps.</p>
+  <h1>Celo Bulk Sender</h1>
+  <p class="lead">Send the same amount of CELO or a Mento stable token to many wallets in a few simple steps.</p>
 
   <div id="connect-section">
     <button id="btn-connect">Connect Wallet</button>
@@ -46,13 +49,17 @@
         Asset to send
         <select id="mode">
           <option value="native" selected>Send CELO (native)</option>
-          <option value="token">Send ERC20 token</option>
+          <option value="token">Send Mento stable token</option>
         </select>
       </label>
 
       <div id="token-field" style="display: none;">
-        <label>Token address <input type="text" id="token-address" placeholder="0x..." /></label>
-        <div class="hint">For example cUSD, COPm, or any ERC20 token address on Celo.</div>
+        <label>Mento stable token
+          <select id="token-select">
+            <!-- Populated from MENTO_TOKENS in app.js -->
+          </select>
+        </label>
+        <div class="hint">Select a Mento Protocol stable token (USDm, COPm, EURm, etc.).</div>
       </div>
 
       <label>Amount per recipient <input type="text" id="amount" placeholder="0.01" /></label>
@@ -85,6 +92,10 @@
     <p class="error" id="send-error"></p>
     <p class="success" id="send-success"></p>
   </div>
+
+  <footer>
+    Developed by <a href="https://x.com/camilosaka" target="_blank" rel="noopener noreferrer">@camilosaka</a>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
   <script src="./config.js"></script>
