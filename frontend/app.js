@@ -201,7 +201,8 @@ $("btn-send").addEventListener("click", async () => {
       const total = amount * BigInt(recipients.length);
       const tx = await bulkSenderContract.bulkSendNative(recipients, amount, { value: total });
       await tx.wait();
-      $("send-success").textContent = `Sent ${amountStr} CELO to ${recipients.length} addresses. Tx: ${tx.hash}`;
+      const txLink = `${CONFIG.explorerUrl || "https://celoscan.io"}/tx/${tx.hash}`;
+      $("send-success").innerHTML = `Sent ${amountStr} CELO to ${recipients.length} addresses. <a href="${txLink}" target="_blank" rel="noopener noreferrer">View on Explorer</a>`;
     } else {
       const token = getSelectedToken();
       if (!token) {
@@ -219,7 +220,8 @@ $("btn-send").addEventListener("click", async () => {
       }
       const tx = await bulkSenderContract.bulkSendToken(token.address, recipients, amount);
       await tx.wait();
-      $("send-success").textContent = `Sent ${amountStr} ${token.symbol} to ${recipients.length} addresses. Tx: ${tx.hash}`;
+      const txLink = `${CONFIG.explorerUrl || "https://celoscan.io"}/tx/${tx.hash}`;
+      $("send-success").innerHTML = `Sent ${amountStr} ${token.symbol} to ${recipients.length} addresses. <a href="${txLink}" target="_blank" rel="noopener noreferrer">View on Explorer</a>`;
     }
   } catch (e) {
     $("send-error").textContent = e.reason || e.message || "Transaction failed";

@@ -3,6 +3,7 @@ window.BULK_SENDER_CONFIG = {
   bulkSenderAddress: "0xAeB90eb53700e83F91046Bd71a7553CC564747a2",
   rpcUrl: "https://forno.celo.org",
   chainId: 42220, // Celo mainnet
+  explorerUrl: "https://celoscan.io", // Celo mainnet; use https://alfajores.celoscan.io for testnet
 };
 
 // Mento Protocol stable tokens on Celo mainnet (address, symbol, name)
